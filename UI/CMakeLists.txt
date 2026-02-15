@@ -6,7 +6,6 @@ set(CMAKE_AUTORCC ON)
 # 【关键配置】：告诉 Qt 的 AUTOUIC 工具，去 "ui" 文件夹里寻找 .ui 文件
 set(CMAKE_AUTOUIC_SEARCH_PATHS "ui")
 
-# 查找 Qt6 组件
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 # 1. 收集所有文件 (带上对应的前缀路径)
@@ -40,5 +39,6 @@ target_link_libraries(AppUI PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
-    Business        # 链接你的业务层
+    TargetRecognition
+    VideoProcess
 )

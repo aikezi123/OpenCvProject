@@ -12,8 +12,6 @@ project(OpenCvProject VERSION 1.0.0 LANGUAGES CXX)
 # 设置全局 C++ 标准为 C++17，这在现代 Qt 和 OpenCV 开发中是基础
 set(CMAKE_CXX_STANDARD 17)
 
-# 告诉 CMake 我们在本地安装的 OpenCV 配置文件到底在哪
-set(OpenCV_DIR "D:/opencv/build/x64/vc16/lib")
 
 # 【魔法指令】统一输出目录
 # 这三行非常关键！它把所有子模块生成的 .exe (运行时) 和静态库 (存档) 
