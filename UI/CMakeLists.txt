@@ -12,14 +12,17 @@ find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 set(UI_SOURCES
     src/main.cpp
     src/MainWindow.cpp
+    src/ImageShowView.cpp
 )
 
 set(UI_HEADERS
     include/MainWindow.h
+    include/ImageShowView.h
 )
 
 set(UI_FORMS
     ui/MainWindow.ui
+    ui/ImageShowView.ui
 )
 
 # 2. 生成可执行文件
