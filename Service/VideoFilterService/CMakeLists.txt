@@ -13,6 +13,6 @@ target_include_directories(VideoFilterService
 )
 
 target_link_libraries(VideoFilterService
-	PUBLIC ${OpenCV_LIBS} Logger
+	PUBLIC ${OpenCV_LIBS} VideoProcess
 )
 

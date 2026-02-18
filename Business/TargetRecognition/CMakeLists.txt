@@ -11,6 +11,6 @@ target_include_directories(TargetRecognition
 )
 
 target_link_libraries(TargetRecognition 
-    PUBLIC Qt6::Core ImageFilterService VideoFilterService
+    PUBLIC Qt6::Core
 )
 

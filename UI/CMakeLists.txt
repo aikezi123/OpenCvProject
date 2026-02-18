@@ -39,9 +39,8 @@ target_include_directories(AppUI PRIVATE
 
 # 4. 链接依赖
 target_link_libraries(AppUI PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
-    TargetRecognition
-    VideoProcess
+    Qt6::Core Qt6::Gui Qt6::Widgets
+    TargetRecognition      # 引入业务
+    ImageFilterService     # 引入具体的 OpenCV 实现
+    Logger                 # 引入具体的日志实现
 )

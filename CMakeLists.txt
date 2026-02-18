@@ -21,9 +21,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# 按照“从最底层到最顶层”的依赖顺序，将子文件夹加入编译队列。
+# 按照洋葱结构（依赖倒置），以Bussiness层为核心，依次加载 Infrastructure、Service 和 UI 模块。
 # 如果顺序写反了（比如先加 UI 再加 Infrastructure），CMake 会因为找不到底层的库而报错。
+add_subdirectory(Business)
 add_subdirectory(Infrastructure)
 add_subdirectory(Service)
-add_subdirectory(Business)
 add_subdirectory(UI)
