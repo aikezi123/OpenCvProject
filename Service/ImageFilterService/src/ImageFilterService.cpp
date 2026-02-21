@@ -58,49 +58,77 @@ ImageFrame ImageFilterService::translateToCenter(const ImageFrame& img, Point2D 
     return toImageFrame(translatedMat);
 }
 
+// 1. 算法升级：使用“霍夫圆变换”自动捕捉瞳孔位置
 std::vector<Point2D> ImageFilterService::findPupilEdges(const ImageFrame& img) {
-    cv::Mat mat = toCvMat(img);
-    std::vector<Point2D> resultEdges;
-    if (mat.empty()) return resultEdges;
+    cv::Mat mat = toCvMat(img); // 把干净的 DTO 转成 OpenCV 认识的 Mat
+    std::vector<Point2D> result;
+    if (mat.empty()) return result;
 
-    // 这里通常会进行：灰度化 -> 二值化 -> 查找轮廓
-    cv::Mat gray, thresh;
+    cv::Mat gray;
+    // 强制转为灰度图（识别瞳孔必备）
     if (mat.channels() == 3) {
         cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
     }
     else {
-        gray = mat;
+        gray = mat.clone();
     }
 
-    // 寻找黑色的瞳孔区域 (阈值设为 50 左右)
-    cv::threshold(gray, thresh, 50, 255, cv::THRESH_BINARY_INV);
+    // 高斯模糊：去掉红血丝等噪点的干扰
+    cv::GaussianBlur(gray, gray, cv::Size(9, 9), 2, 2);
 
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(thresh, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    // 核心算法：霍夫梯度法找圆
+    std::vector<cv::Vec3f> circles;
+    cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1,
+        gray.rows / 8, // 圆心之间的最小距离
+        100,           // Canny 边缘检测的高阈值
+        30,            // 累加器阈值（越小检测到的假圆越多）
+        20,            // 瞳孔最小半径
+        gray.rows / 3  // 瞳孔最大半径
+    );
 
-    // 假设最大的轮廓就是瞳孔
-    if (!contours.empty()) {
-        for (const auto& pt : contours[0]) {
-            resultEdges.push_back(Point2D{ pt.x, pt.y });
-        }
+    if (!circles.empty()) {
+        // 取第一个圆（得分最高、最明显的瞳孔）
+        int cx = cvRound(circles[0][0]);
+        int cy = cvRound(circles[0][1]);
+        int r = cvRound(circles[0][2]);
+
+        // 巧妙的传递：把圆心放在第0个点，半径放在第1个点的x里
+        result.push_back({ cx, cy });
+        result.push_back({ r, 0 });
     }
-    return resultEdges;
+
+    return result;
 }
 
-ImageFrame ImageFilterService::drawEdgesAndWatermark(const ImageFrame& img,
-    const std::vector<Point2D>& edges,
-    const std::string& watermarkText) {
+// 2. 绘图升级：在刚才找到的位置画上霸气的十字准星
+ImageFrame ImageFilterService::drawEdgesAndWatermark(const ImageFrame& img, const std::vector<Point2D>& edges, const std::string& watermark) {
     cv::Mat mat = toCvMat(img);
     if (mat.empty()) return img;
 
-    // 1. 绘制边缘 (画绿线)
-    for (const auto& pt : edges) {
-        cv::circle(mat, cv::Point(pt.x, pt.y), 1, cv::Scalar(0, 255, 0), -1);
+    // 必须转成彩色通道，否则绿色的十字画不出来
+    if (mat.channels() == 1) {
+        cv::cvtColor(mat, mat, cv::COLOR_GRAY2BGR);
     }
 
-    // 2. 添加水印 (画红字)
-    cv::putText(mat, watermarkText, cv::Point(20, 40),
-        cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+    // 如果成功找到了瞳孔（有圆心和半径 2 个数据）
+    if (edges.size() >= 2) {
+        int cx = edges[0].x;
+        int cy = edges[0].y;
+        int r = edges[1].x;
 
-    return toImageFrame(mat);
+        // 步骤 A：画一个绿色的圈，完美框住瞳孔 (Scalar(B, G, R) -> 0, 255, 0 是纯绿)
+        cv::circle(mat, cv::Point(cx, cy), r, cv::Scalar(0, 255, 0), 2);
+
+        // 步骤 B：在圆心画绿色的十字准星
+        int crossSize = 20; // 十字准星的一半长度
+        // 画横线
+        cv::line(mat, cv::Point(cx - crossSize, cy), cv::Point(cx + crossSize, cy), cv::Scalar(0, 255, 0), 2);
+        // 画竖线
+        cv::line(mat, cv::Point(cx, cy - crossSize), cv::Point(cx, cy + crossSize), cv::Scalar(0, 255, 0), 2);
+    }
+
+    // 步骤 C：打上我们之前的红字水印
+    cv::putText(mat, watermark, cv::Point(30, 50), cv::FONT_HERSHEY_SIMPLEX, 1.2, cv::Scalar(0, 0, 255), 3);
+
+    return toImageFrame(mat); // 完工，转回纯净的 DTO 扔给业务层
 }

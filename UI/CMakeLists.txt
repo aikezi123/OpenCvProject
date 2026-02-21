@@ -11,7 +11,7 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 # 2. 检查这里！必须把你画的界面文件加进源文件列表里
-add_executable(AppUI
+add_executable(AppUI WIN32
     src/main.cpp              # 你的 main 函数文件
     src/MainWindow.cpp
     include/MainWindow.h
