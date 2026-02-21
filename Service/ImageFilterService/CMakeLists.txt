@@ -13,8 +13,11 @@ target_include_directories(ImageFilterService
 # ---------------------------------------------------------
 # 👇 就是改这里：用 ${OpenCV_LIBS} 替换原来的 OpenCV::World
 # ---------------------------------------------------------
-target_link_libraries(ImageFilterService PUBLIC 
-    TargetRecognition   # 【反向依赖】：依赖业务层去获取接口头文件！
-    ${OpenCV_LIBS}  
+target_link_libraries(ImageFilterService
+    PUBLIC 
+    ${OpenCV_LIBS} 
+    Logger 
+    DbClient
+    TargetRecognition  # <--- 【极度关键】必须加上这个，才能打通头文件搜索路径！
 )
 

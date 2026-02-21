@@ -3,6 +3,8 @@ find_package(Qt6 COMPONENTS Core REQUIRED)
 add_library(TargetRecognition STATIC
     src/TargetRecognition.cpp
     include/TargetRecognition.h
+    include/EyeDataTypes.h
+    include/IEyeProcessor.h
 )
 
 target_include_directories(TargetRecognition 

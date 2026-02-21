@@ -1,4 +1,4 @@
-#include "ImageShowView.h"
+﻿#include "ImageShowView.h"
 
 ImageShowView::ImageShowView(QWidget *parent)
 	: QMainWindow(parent)

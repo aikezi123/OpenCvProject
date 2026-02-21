@@ -9,6 +9,9 @@ cmake_minimum_required(VERSION 3.16)
 # 定义项目的整体名称为 OpenCvProject，并声明这是一个 C++ (CXX) 项目
 project(OpenCvProject VERSION 1.0.0 LANGUAGES CXX)
 
+# 👇 【加入这一行，彻底消灭 C4828 中文乱码警告】
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 # 设置全局 C++ 标准为 C++17，这在现代 Qt 和 OpenCV 开发中是基础
 set(CMAKE_CXX_STANDARD 17)
 
@@ -26,4 +29,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(Business)
 add_subdirectory(Infrastructure)
 add_subdirectory(Service)
+add_subdirectory(Application)
 add_subdirectory(UI)

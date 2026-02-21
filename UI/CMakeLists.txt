@@ -1,46 +1,31 @@
-# 开启 Qt 的自动化处理
-set(CMAKE_AUTOUIC ON)
+# UI/CMakeLists.txt
+
+# 1. 这三行必须有，且必须放在 add_executable 前面
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)   # 核心：开启 UI 自动编译
 set(CMAKE_AUTORCC ON)
 
-# 【关键配置】：告诉 Qt 的 AUTOUIC 工具，去 "ui" 文件夹里寻找 .ui 文件
-set(CMAKE_AUTOUIC_SEARCH_PATHS "ui")
+# 👇 【告诉 Qt 去 ui 文件夹找界面文件！】 👇
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
-# 1. 收集所有文件 (带上对应的前缀路径)
-set(UI_SOURCES
-    src/main.cpp
-    src/MainWindow.cpp
-    src/ImageShowView.cpp
-)
-
-set(UI_HEADERS
-    include/MainWindow.h
-    include/ImageShowView.h
-)
-
-set(UI_FORMS
-    ui/MainWindow.ui
-    ui/ImageShowView.ui
-)
-
-# 2. 生成可执行文件
+# 2. 检查这里！必须把你画的界面文件加进源文件列表里
 add_executable(AppUI
-    ${UI_SOURCES}
-    ${UI_HEADERS}
-    ${UI_FORMS}
+    src/main.cpp              # 你的 main 函数文件
+    src/MainWindow.cpp
+    include/MainWindow.h
+    ui/MainWindow.ui          # <--- 【极其关键！】必须加上你的 .ui 文件路径！
 )
 
-# 3. 设置头文件搜索路径，让 src 里的 cpp 能直接 #include "MainWindow.h"
 target_include_directories(AppUI PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# 4. 链接依赖
+# 3. UI 层的依赖依然保持极简
 target_link_libraries(AppUI PRIVATE
-    Qt6::Core Qt6::Gui Qt6::Widgets
-    TargetRecognition      # 引入业务
-    ImageFilterService     # 引入具体的 OpenCV 实现
-    Logger                 # 引入具体的日志实现
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    EyeTrackingApp            # 只认识 Application 层
 )
