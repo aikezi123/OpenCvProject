@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <opencv2/opencv.hpp>
 #include <cstring>
+#include "CommonLogger.h"
 
 // 引入底层干活的工具
 #include "ImageFilterService.h"
@@ -55,4 +56,5 @@ void EyeWorker::processImageFromFile(const QString& filePath) {
         // 深拷贝发给 UI 线程
         emit frameProcessed(qImg.copy());
     }
+    LOG_INFO("图像解码成功，正在交给业务层处理...");
 }

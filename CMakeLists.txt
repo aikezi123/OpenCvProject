@@ -12,8 +12,9 @@ project(OpenCvProject VERSION 1.0.0 LANGUAGES CXX)
 # 👇 【加入这一行，彻底消灭 C4828 中文乱码警告】
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-# 设置全局 C++ 标准为 C++17，这在现代 Qt 和 OpenCV 开发中是基础
-set(CMAKE_CXX_STANDARD 17)
+# 👇 加入这两行，强行开启 C++20 时代 👇
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 # 【魔法指令】统一输出目录
@@ -26,6 +27,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # 按照洋葱结构（依赖倒置），以Bussiness层为核心，依次加载 Infrastructure、Service 和 UI 模块。
 # 如果顺序写反了（比如先加 UI 再加 Infrastructure），CMake 会因为找不到底层的库而报错。
+add_subdirectory(Common)
 add_subdirectory(Business)
 add_subdirectory(Infrastructure)
 add_subdirectory(Service)

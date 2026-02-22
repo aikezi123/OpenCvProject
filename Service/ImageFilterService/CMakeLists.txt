@@ -16,7 +16,7 @@ target_include_directories(ImageFilterService
 target_link_libraries(ImageFilterService
     PUBLIC 
     ${OpenCV_LIBS} 
-    Logger 
+    CommonLogger 
     DbClient
     TargetRecognition  # <--- 【极度关键】必须加上这个，才能打通头文件搜索路径！
 )

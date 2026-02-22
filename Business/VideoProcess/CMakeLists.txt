@@ -12,4 +12,5 @@ target_include_directories(VideoProcess
 
 target_link_libraries(VideoProcess
 	PUBLIC Qt6::Core
+	CommonLogger
 )
