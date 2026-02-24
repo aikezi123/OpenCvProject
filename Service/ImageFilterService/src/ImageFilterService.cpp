@@ -1,5 +1,8 @@
 ﻿#include "ImageFilterService.h"
-#include <cstring> // std::memcpy 需要
+#include "CommonLogger.h" // 引入日志底座
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <numeric> // 用于计算平均值
 
 // ==========================================================
 // 内存隔离工具实现
