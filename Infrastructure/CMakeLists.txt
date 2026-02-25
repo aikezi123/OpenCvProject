@@ -1,1 +1,2 @@
 add_subdirectory(DbClient)
+add_subdirectory(OpenCvVision)

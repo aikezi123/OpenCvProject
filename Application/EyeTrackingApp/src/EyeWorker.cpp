@@ -6,12 +6,12 @@
 #include "CommonLogger.h"
 
 // 引入底层干活的工具
-#include "ImageFilterService.h"
+#include "OpenCvEyeDetector.h"
 
 // 【核心】：在构造函数中完成依赖注入装配
 EyeWorker::EyeWorker(QObject* parent) : QObject(parent) {
     // 1. 造一把 OpenCV 的干活锤子 (Service层)
-    auto cvService = std::make_shared<ImageFilterService>();
+    auto cvService = std::make_shared<OpenCvEyeDetector>();
     // 2. 把锤子塞给业务包工头 (Business层)
     m_business = std::make_shared<TargetRecognition>(cvService);
 }

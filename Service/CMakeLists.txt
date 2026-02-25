@@ -1,2 +1,1 @@
-add_subdirectory(ImageFilterService)
 add_subdirectory(VideoFilterService)

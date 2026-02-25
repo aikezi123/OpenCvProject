@@ -1,4 +1,4 @@
-﻿#include "ImageFilterService.h"
+﻿#include "OpenCvEyeDetector.h"
 #include "CommonLogger.h" // 使用最新的底座日志文件
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
@@ -7,7 +7,7 @@
 // =========================================================================
 // 🌟 1. 核心算法：前置灰度手术 + 暗度优先扫描 (0.05秒极速版)
 // =========================================================================
-std::vector<Point2D> ImageFilterService::findPupilEdges(const ImageFrame& img) {
+std::vector<Point2D> OpenCvEyeDetector::findPupilEdges(const ImageFrame& img) {
     cv::Mat mat = toCvMat(img);
     std::vector<Point2D> result;
     if (mat.empty()) return result;
@@ -112,13 +112,13 @@ std::vector<Point2D> ImageFilterService::findPupilEdges(const ImageFrame& img) {
 // 🌟 2. 兼容基类旧接口的实现
 // =========================================================================
 
-Point2D ImageFilterService::findEyeCenter(const ImageFrame& img) {
+Point2D OpenCvEyeDetector::findEyeCenter(const ImageFrame& img) {
     auto edges = findPupilEdges(img);
     if (!edges.empty()) return edges[0];
     return { -1, -1 };
 }
 
-ImageFrame ImageFilterService::translateToCenter(const ImageFrame& img, Point2D center) {
+ImageFrame OpenCvEyeDetector::translateToCenter(const ImageFrame& img, Point2D center) {
     return img; // UI层已处理缩放，直接返回
 }
 
@@ -126,7 +126,7 @@ ImageFrame ImageFilterService::translateToCenter(const ImageFrame& img, Point2D 
 // 🌟 3. 绘制层与数据转换工具
 // =========================================================================
 
-ImageFrame ImageFilterService::drawEdgesAndWatermark(const ImageFrame& img, const std::vector<Point2D>& edges, const std::string& watermark) {
+ImageFrame OpenCvEyeDetector::drawEdgesAndWatermark(const ImageFrame& img, const std::vector<Point2D>& edges, const std::string& watermark) {
     cv::Mat mat = toCvMat(img);
     if (mat.empty() || edges.size() < 2) return img;
 
@@ -142,7 +142,7 @@ ImageFrame ImageFilterService::drawEdgesAndWatermark(const ImageFrame& img, cons
     return toImageFrame(mat);
 }
 
-cv::Mat ImageFilterService::removeAlphaChannel(const cv::Mat& source) const {
+cv::Mat OpenCvEyeDetector::removeAlphaChannel(const cv::Mat& source) const {
     if (source.channels() != 4) return source.clone();
     cv::Mat result;
     std::vector<cv::Mat> channels;
@@ -152,14 +152,14 @@ cv::Mat ImageFilterService::removeAlphaChannel(const cv::Mat& source) const {
     return result;
 }
 
-cv::Mat ImageFilterService::toCvMat(const ImageFrame& img) const {
+cv::Mat OpenCvEyeDetector::toCvMat(const ImageFrame& img) const {
     if (!img.isValid()) return cv::Mat();
     int cvType = (img.channels == 1) ? CV_8UC1 : ((img.channels == 3) ? CV_8UC3 : CV_8UC4);
     // 智能指针获取底层裸指针
     return cv::Mat(img.height, img.width, cvType, (void*)img.data.get()).clone();
 }
 
-ImageFrame ImageFilterService::toImageFrame(const cv::Mat& mat) const {
+ImageFrame OpenCvEyeDetector::toImageFrame(const cv::Mat& mat) const {
     ImageFrame frame;
     if (mat.empty()) return frame;
     frame.width = mat.cols;

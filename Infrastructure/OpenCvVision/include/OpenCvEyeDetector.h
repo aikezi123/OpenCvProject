@@ -6,10 +6,10 @@
 #include <string>
 
 // 具体的图像处理服务实现类 (专家/打工人)
-class ImageFilterService : public IEyeProcessor {
+class OpenCvEyeDetector : public IEyeProcessor {
 public:
-    ImageFilterService() = default;
-    ~ImageFilterService() override = default;
+    OpenCvEyeDetector() = default;
+    ~OpenCvEyeDetector() override = default;
 
     // --- 核心业务接口 ---
     std::vector<Point2D> findPupilEdges(const ImageFrame& img) override;

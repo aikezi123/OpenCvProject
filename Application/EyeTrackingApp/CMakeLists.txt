@@ -18,6 +18,6 @@ target_link_libraries(EyeTrackingApp
         Qt6::Gui
         CommonLogger
         TargetRecognition     # 核心：必须调用业务逻辑
-        ImageFilterService    # 核心：为了实例化具体的工具进行依赖注入
+        OpenCvVision    # 核心：为了实例化具体的工具进行依赖注入
         ${OpenCV_LIBS}        # 因为 EyeWorker 里的 cv::imdecode 用到了 OpenCV
 )                             
