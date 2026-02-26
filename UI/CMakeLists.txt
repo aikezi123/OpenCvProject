@@ -1,32 +1,63 @@
-# UI/CMakeLists.txt
-
-# 1. è¿™ä¸‰è¡Œå¿…é¡»æœ‰ï¼Œä¸”å¿…é¡»æ”¾åœ¨ add_executable å‰é¢
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)   # æ ¸å¿ƒï¼šå¼€å¯ UI è‡ªåŠ¨ç¼–è¯‘
-set(CMAKE_AUTORCC ON)
-
-# ğŸ‘‡ ã€å‘Šè¯‰ Qt å» ui æ–‡ä»¶å¤¹æ‰¾ç•Œé¢æ–‡ä»¶ï¼ã€‘ ğŸ‘‡
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
-
+# ==========================================
+# 1. ÉùÃ÷Ñ°ÕÒ Qt6 
+# ==========================================
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
-# 2. æ£€æŸ¥è¿™é‡Œï¼å¿…é¡»æŠŠä½ ç”»çš„ç•Œé¢æ–‡ä»¶åŠ è¿›æºæ–‡ä»¶åˆ—è¡¨é‡Œ
-add_executable(AppUI WIN32
-    src/main.cpp              # ä½ çš„ main å‡½æ•°æ–‡ä»¶
-    src/MainWindow.cpp
-    include/MainWindow.h
-    ui/MainWindow.ui          # <--- ã€æå…¶å…³é”®ï¼ã€‘å¿…é¡»åŠ ä¸Šä½ çš„ .ui æ–‡ä»¶è·¯å¾„ï¼
-)
+# ==========================================
+# 2. ¿ªÆô Qt ×Ô¶¯±àÒëºÚ¿Æ¼¼
+# ==========================================
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
-target_include_directories(AppUI PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+# ==========================================
+# 3. µİ¹éËÑË÷ËùÓĞ´úÂëºÍ UI ÎÄ¼ş
+# ==========================================
+file(GLOB_RECURSE UI_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE UI_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+file(GLOB_RECURSE UI_FORMS   CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.ui")
 
-# 3. UI å±‚çš„ä¾èµ–ä¾ç„¶ä¿æŒæç®€
-target_link_libraries(AppUI PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
+# ==========================================
+# 4. Éú³ÉÖ´ĞĞ³ÌĞò
+# ==========================================
+add_executable(AppUI WIN32 ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS})
+
+# ==========================================
+# 5. ¡¾ĞŞ¸´ include Ñ°Ö·¡¿£º×Ô¶¯½âÎö²¢°ó¶¨ËùÓĞµÄ include Â·¾¶
+# ==========================================
+set(UI_INCLUDE_DIRS "")
+foreach(_header_file ${UI_HEADERS})
+    get_filename_component(_dir ${_header_file} DIRECTORY)
+    list(APPEND UI_INCLUDE_DIRS ${_dir})
+endforeach()
+
+if(UI_INCLUDE_DIRS)
+    list(REMOVE_DUPLICATES UI_INCLUDE_DIRS)
+    target_include_directories(AppUI PRIVATE ${UI_INCLUDE_DIRS})
+endif()
+
+# ==========================================
+# 6. ¡¾UI Ñ°Ö·¡¿£º¸æËß AUTOUIC ËùÓĞµÄ .ui ÎÄ¼şÔÚÄÄ
+# ==========================================
+set(UI_FORM_DIRS "")
+foreach(_ui_file ${UI_FORMS})
+    get_filename_component(_dir ${_ui_file} DIRECTORY)
+    list(APPEND UI_FORM_DIRS ${_dir})
+endforeach()
+
+if(UI_FORM_DIRS)
+    list(REMOVE_DUPLICATES UI_FORM_DIRS)
+    # °ÑÌáÈ¡µ½µÄËùÓĞ ui ÎÄ¼ş¼ĞÂ·¾¶£¬¸æËß Qt µÄ×Ô¶¯±àÒë¹¤¾ß£¡
+    set_property(TARGET AppUI PROPERTY AUTOUIC_SEARCH_PATHS ${UI_FORM_DIRS})
+endif()
+
+# ==========================================
+# 7. ÑÏ½÷µÄ·À¸¯²ãÁ´½Ó
+# ==========================================
+target_link_libraries(AppUI PRIVATE 
+    Qt6::Core 
+    Qt6::Gui 
+    Qt6::Widgets 
     CommonLogger
-    EyeTrackingApp            # åªè®¤è¯† Application å±‚
+    EyeTrackingApp
 )

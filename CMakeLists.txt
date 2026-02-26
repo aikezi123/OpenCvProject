@@ -9,10 +9,10 @@ cmake_minimum_required(VERSION 3.16)
 # 定义项目的整体名称为 OpenCvProject，并声明这是一个 C++ (CXX) 项目
 project(OpenCvProject VERSION 1.0.0 LANGUAGES CXX)
 
-# 👇 【加入这一行，彻底消灭 C4828 中文乱码警告】
+# 加入这一行，彻底消灭 C4828 中文乱码警告
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-# 👇 加入这两行，强行开启 C++20 时代 👇
+# 开启 C++20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
