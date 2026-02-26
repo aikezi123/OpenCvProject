@@ -2,7 +2,7 @@
 find_package(OpenCV REQUIRED)
 
 #将VideoFilterService独立生成一个静态库，包含其源文件和头文件。
-add_library(VideoFilterService STATIC
+add_library(VideoFilterService SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/src/VideoFilterService.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/VideoFilterService.h
 )

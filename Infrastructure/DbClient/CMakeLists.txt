@@ -1,5 +1,5 @@
 # 将 DbClient 编译成一个独立的静态库
-add_library(DbClient STATIC
+add_library(DbClient SHARED
 	src/DbClient.cpp
 	include/DbClient.h
 )

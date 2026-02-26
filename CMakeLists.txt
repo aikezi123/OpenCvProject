@@ -17,13 +17,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-# 【魔法指令】统一输出目录
+# 统一输出目录
 # 这三行非常关键！它把所有子模块生成的 .exe (运行时) 和静态库 (存档) 
 # 全部集中输出到你项目里的 build/bin 目录下。
 # 好处：运行 exe 时，再也不会报“找不到同目录下的某个 dll”这种错了！
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# =======================================================
+# 强行导出 Windows DLL 的所有符号
+# 这样你就不用在 C++ 代码里手写 __declspec(dllexport) 了！
+# =======================================================
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # 按照洋葱结构（依赖倒置），以Bussiness层为核心，依次加载 Infrastructure、Service 和 UI 模块。
 # 如果顺序写反了（比如先加 UI 再加 Infrastructure），CMake 会因为找不到底层的库而报错。

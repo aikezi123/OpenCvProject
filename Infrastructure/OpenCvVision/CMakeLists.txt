@@ -1,6 +1,6 @@
 find_package(OpenCV REQUIRED)
 
-add_library(OpenCvVision STATIC
+add_library(OpenCvVision SHARED
     src/OpenCvEyeDetector.cpp  # 注意这里的路径，如果你没有建 src 文件夹，就把 src/ 删掉
     include/OpenCvEyeDetector.h # 同理，如果没有 include 文件夹，就把 include/ 删掉
 )

@@ -1,5 +1,5 @@
 # Infrastructure/Logger/CMakeLists.txt
-add_library(CommonLogger STATIC
+add_library(CommonLogger SHARED
     include/CommonLogger.h
     src/CommonLogger.cpp
 )

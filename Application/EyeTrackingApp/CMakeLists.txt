@@ -2,10 +2,13 @@
 set(CMAKE_AUTOMOC ON)
 find_package(Qt6 COMPONENTS Core Gui REQUIRED)
 
-add_library(EyeTrackingApp STATIC
+add_library(EyeTrackingApp SHARED
     src/EyeWorker.cpp
     include/EyeWorker.h
 )
+
+# 👇 加上这一行！告诉编译器：“兄弟，我们现在正在造 DLL，请把护照设为 EXPORT 模式！”
+target_compile_definitions(EyeTrackingApp PRIVATE BUILD_EYE_APP_DLL)
 
 target_include_directories(EyeTrackingApp 
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include

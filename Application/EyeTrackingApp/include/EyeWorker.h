@@ -6,7 +6,17 @@
 // 引入业务层主板
 #include "TargetRecognition.h" 
 
-class EyeWorker : public QObject {
+// ==========================================
+// 如果我们在“造”这个DLL，就打上 EXPORT（导出）标签
+// 如果别人在“用”这个DLL，就打上 IMPORT（导入）标签
+// ==========================================
+#if defined(BUILD_EYE_APP_DLL)
+#  define EYE_APP_EXPORT Q_DECL_EXPORT
+#else
+#  define EYE_APP_EXPORT Q_DECL_IMPORT
+#endif
+
+class EYE_APP_EXPORT EyeWorker : public QObject {
     Q_OBJECT
 public:
     explicit EyeWorker(QObject* parent = nullptr);

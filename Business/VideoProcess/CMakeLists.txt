@@ -1,6 +1,6 @@
 find_package(Qt6 COMPONENTS CORE REQUIRED)
 
-add_library(VideoProcess STATIC
+add_library(VideoProcess SHARED
 	src/VideoProcess.cpp
 	include/VideoProcess.h
 )
