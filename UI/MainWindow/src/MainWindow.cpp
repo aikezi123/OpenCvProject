@@ -23,17 +23,17 @@ MainWindow::MainWindow(QWidget* parent)
     this->setFixedSize(1920, 1080); // 锁定工业控制台标准分辨率
 
     initUIStyle();
-    initPages();
     connectSignals();
+    initPages();
 }
 
 void MainWindow::initUIStyle() {
     // 1. 消除系统自带装饰和虚线框
     ui->treeWidget->setRootIsDecorated(false);     // 隐藏系统左侧展开箭头
-    ui->treeWidget->setFocusPolicy(Qt::NoFocus);   // 🌟 彻底干掉点击时恶心的虚线框
+    ui->treeWidget->setFocusPolicy(Qt::NoFocus);   //  彻底干掉点击时恶心的虚线框
 
     // 2. 布局基础设置
-    ui->treeWidget->setIndentation(40);            // 🌟 子节点向右缩进量（根据之前测试的最佳视觉值）
+    ui->treeWidget->setIndentation(40);            // 子节点向右缩进量（根据之前测试的最佳视觉值）
     ui->treeWidget->setHeaderHidden(true);
     ui->treeWidget->setMinimumWidth(250);
 
@@ -82,22 +82,27 @@ void MainWindow::initPages() {
     // —————— 首页 (顶级业务节点，带图标无箭头) ——————
     addRootBusinessPage("首页", new FrontPageView(this), defaultIcon);
 
-    // —————— 图像处理模块 ——————
-    QTreeWidgetItem* rootVision = addCategoryNode("图像处理", defaultIcon);
-    addBusinessPage(rootVision, "单图瞳孔分析", new ImageShowView(this));
-    addBusinessPage(rootVision, "相机图像采集", new VideoTrackWidgetView(this));
-
     // —————— 升级模块 ———————
     QTreeWidgetItem* rootUpdate = addCategoryNode("升级", defaultIcon);
     addBusinessPage(rootUpdate, "固件升级", new FirmWareUpgradeView(this));
     addBusinessPage(rootUpdate, "软件升级", new SoftWareUpgrade(this));
 
+    // —————— 图像处理模块 ——————
+    QTreeWidgetItem* rootVision = addCategoryNode("图像处理", defaultIcon);
+    addBusinessPage(rootVision, "单图瞳孔分析", new ImageShowView(this));
+    addBusinessPage(rootVision, "相机图像采集", new VideoTrackWidgetView(this));
+
     // 初始化时展开所有节点
     ui->treeWidget->expandAll();
+
+    if (ui->treeWidget->topLevelItemCount() > 0) {
+        // 获取第 0 个顶级节点（也就是你最先添加的“首页”）并设置为当前选中项
+        ui->treeWidget->setCurrentItem(ui->treeWidget->topLevelItem(0));
+    }
 }
 
 void MainWindow::connectSignals() {
-    // 🌟 1. 导航切换逻辑：通过 currentItemChanged 实现路由跳转
+    //  1. 导航切换逻辑：通过 currentItemChanged 实现路由跳转
     connect(ui->treeWidget, &QTreeWidget::currentItemChanged,
         this, [this](QTreeWidgetItem* current, QTreeWidgetItem* previous) {
             if (!current) return;
@@ -107,14 +112,14 @@ void MainWindow::connectSignals() {
             }
         });
 
-    // 🌟 2. 交互优化：单击父节点即可展开/收缩
+    //  2. 交互优化：单击父节点即可展开/收缩
     connect(ui->treeWidget, &QTreeWidget::itemClicked, this, [](QTreeWidgetItem* item, int column) {
         if (item->childCount() > 0) {
             item->setExpanded(!item->isExpanded());
         }
         });
 
-    // 🌟 3. 动画逻辑：节点展开时 -> 箭头朝上
+    //  3. 动画逻辑：节点展开时 -> 箭头朝上
     connect(ui->treeWidget, &QTreeWidget::itemExpanded, this, [this](QTreeWidgetItem* item) {
         QWidget* container = ui->treeWidget->itemWidget(item, 0);
         if (container) {
@@ -125,7 +130,7 @@ void MainWindow::connectSignals() {
         }
         });
 
-    // 🌟 4. 动画逻辑：节点收缩时 -> 箭头朝下
+    //  4. 动画逻辑：节点收缩时 -> 箭头朝下
     connect(ui->treeWidget, &QTreeWidget::itemCollapsed, this, [this](QTreeWidgetItem* item) {
         QWidget* container = ui->treeWidget->itemWidget(item, 0);
         if (container) {
@@ -163,7 +168,7 @@ void MainWindow::addRootBusinessPage(const QString& name, QWidget* page, const Q
     if (!page) return;
     int index = ui->stackedWidget->addWidget(page);
 
-    // 🌟 修复点：去掉了 QStringList() << name
+    // 去掉了 QStringList() << name
     QTreeWidgetItem* rootItem = new QTreeWidgetItem(ui->treeWidget);
     rootItem->setData(0, Qt::UserRole, index);
 
@@ -177,7 +182,7 @@ void MainWindow::addRootBusinessPage(const QString& name, QWidget* page, const Q
 
 void MainWindow::decorateParentNodeUI(QTreeWidgetItem* item, const QString& name, const QString& iconPath, bool hasArrow) {
     QWidget* container = new QWidget();
-    // 🌟 核心：允许鼠标穿透，保证背后的 QTreeWidget 能响应悬停和选中颜色
+    // 允许鼠标穿透，保证背后的 QTreeWidget 能响应悬停和选中颜色
     container->setAttribute(Qt::WA_TransparentForMouseEvents);
     container->setStyleSheet("background: transparent;");
 
