@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/Image/MainWindow">
+        <file>Image/MainWindow/UI/FrontPage.png</file>
+        <file>Image/MainWindow/Button/LaserState.png</file>
+        <file>Image/MainWindow/Button/Mode.png</file>
+        <file>Image/MainWindow/Button/RemoteDesktop.png</file>
+        <file>Image/MainWindow/Button/SecurityLogicSate.png</file>
+        <file>Image/MainWindow/Button/TreatmentLightState.png</file>
+        <file>Image/MainWindow/Button/unknownEnergy.png</file>
+        <file>Image/MainWindow/Icon/arrow-down.png</file>
+        <file>Image/MainWindow/Icon/rootIcon.png</file>
+        <file>Image/MainWindow/Icon/arrow-up.png</file>
+    </qresource>
+    <qresource prefix="/Image/ImageProcessing">
+        <file>Image/ImageProcessing/EyeProcessing/cars.jpg</file>
+    </qresource>
+</RCC>
