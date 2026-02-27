@@ -1,29 +1,30 @@
-# ==========================================
-# 1. ÉùÃ÷Ñ°ÕÒ Qt6 
+ï»¿# ==========================================
+# 1. å£°æ˜Žå¯»æ‰¾ Qt6 
 # ==========================================
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 # ==========================================
-# 2. ¿ªÆô Qt ×Ô¶¯±àÒëºÚ¿Æ¼¼
+# 2. å¼€å¯ Qt è‡ªåŠ¨ç¼–è¯‘é»‘ç§‘æŠ€
 # ==========================================
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # ==========================================
-# 3. µÝ¹éËÑË÷ËùÓÐ´úÂëºÍ UI ÎÄ¼þ
+# 3. é€’å½’æœç´¢æ‰€æœ‰ä»£ç å’Œ UI æ–‡ä»¶
 # ==========================================
 file(GLOB_RECURSE UI_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE UI_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 file(GLOB_RECURSE UI_FORMS   CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.ui")
+file(GLOB_RECURSE UI_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.qrc")
 
 # ==========================================
-# 4. Éú³ÉÖ´ÐÐ³ÌÐò
+# 4. ç”Ÿæˆæ‰§è¡Œç¨‹åº
 # ==========================================
-add_executable(AppUI WIN32 ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS})
+add_executable(AppUI WIN32 ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS} ${UI_RESOURCES})
 
 # ==========================================
-# 5. ¡¾ÐÞ¸´ include Ñ°Ö·¡¿£º×Ô¶¯½âÎö²¢°ó¶¨ËùÓÐµÄ include Â·¾¶
+# 5. ã€ä¿®å¤ include å¯»å€ã€‘ï¼šè‡ªåŠ¨è§£æžå¹¶ç»‘å®šæ‰€æœ‰çš„ include è·¯å¾„
 # ==========================================
 set(UI_INCLUDE_DIRS "")
 foreach(_header_file ${UI_HEADERS})
@@ -37,7 +38,7 @@ if(UI_INCLUDE_DIRS)
 endif()
 
 # ==========================================
-# 6. ¡¾UI Ñ°Ö·¡¿£º¸æËß AUTOUIC ËùÓÐµÄ .ui ÎÄ¼þÔÚÄÄ
+# 6. ã€UI å¯»å€ã€‘ï¼šå‘Šè¯‰ AUTOUIC æ‰€æœ‰çš„ .ui æ–‡ä»¶åœ¨å“ª
 # ==========================================
 set(UI_FORM_DIRS "")
 foreach(_ui_file ${UI_FORMS})
@@ -47,12 +48,12 @@ endforeach()
 
 if(UI_FORM_DIRS)
     list(REMOVE_DUPLICATES UI_FORM_DIRS)
-    # °ÑÌáÈ¡µ½µÄËùÓÐ ui ÎÄ¼þ¼ÐÂ·¾¶£¬¸æËß Qt µÄ×Ô¶¯±àÒë¹¤¾ß£¡
+    # æŠŠæå–åˆ°çš„æ‰€æœ‰ ui æ–‡ä»¶å¤¹è·¯å¾„ï¼Œå‘Šè¯‰ Qt çš„è‡ªåŠ¨ç¼–è¯‘å·¥å…·ï¼
     set_property(TARGET AppUI PROPERTY AUTOUIC_SEARCH_PATHS ${UI_FORM_DIRS})
 endif()
 
 # ==========================================
-# 7. ÑÏ½÷µÄ·À¸¯²ãÁ´½Ó
+# 7. ä¸¥è°¨çš„é˜²è…å±‚é“¾æŽ¥
 # ==========================================
 target_link_libraries(AppUI PRIVATE 
     Qt6::Core 

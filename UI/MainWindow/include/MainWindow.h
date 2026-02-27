@@ -17,7 +17,7 @@ public:
 
 private:
     // 将初始化逻辑拆分为三个维度，符合 Layer 5 UI 层的高内聚要求
-    void initUI();          // 负责静态界面属性（尺寸、树控件宽度等）
+    void initUIStyle();          // 负责静态界面属性（尺寸、树控件宽度等）
     void initPages();       // 负责业务页面装载与树节点绑定
     void connectSignals();  // 负责信号槽连接
 
@@ -27,6 +27,9 @@ private:
 
     //2.插入业务子节点并绑定页面
     void addBusinessPage(QTreeWidgetItem* parent, const QString& name, QWidget* page);
+
+    //3.插入业务根节点(既是根节点，点击又跳转)
+    void addRootBusinessPage(const QString& name, QWidget* page);
 
 private:
     Ui::MainWindow* ui;
