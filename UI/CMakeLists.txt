@@ -19,12 +19,13 @@ file(GLOB_RECURSE UI_FORMS   CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.ui
 file(GLOB_RECURSE UI_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.qrc")
 
 # ==========================================
-# 4. 生成执行程序
+# 4. 生成UI库 (修改为 STATIC)
 # ==========================================
-add_executable(AppUI WIN32 ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS} ${UI_RESOURCES})
+add_library(AppUI SHARED ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS} ${UI_RESOURCES})
 
 # ==========================================
-# 5. 【修复 include 寻址】：自动解析并绑定所有的 include 路径
+# 5. 自动解析并绑定所有的 include 路径 (必须是 PUBLIC)
+# 解决C++编译器找不到头文件的问题，由于UI层分了多个文件夹，每个文件夹都有include目录。
 # ==========================================
 set(UI_INCLUDE_DIRS "")
 foreach(_header_file ${UI_HEADERS})
@@ -34,7 +35,8 @@ endforeach()
 
 if(UI_INCLUDE_DIRS)
     list(REMOVE_DUPLICATES UI_INCLUDE_DIRS)
-    target_include_directories(AppUI PRIVATE ${UI_INCLUDE_DIRS})
+    # 必须在提取完路径后，统一使用 PUBLIC 暴露！
+    target_include_directories(AppUI PUBLIC ${UI_INCLUDE_DIRS})
 endif()
 
 # ==========================================
@@ -55,7 +57,7 @@ endif()
 # ==========================================
 # 7. 严谨的防腐层链接
 # ==========================================
-target_link_libraries(AppUI PRIVATE 
+target_link_libraries(AppUI PUBLIC 
     Qt6::Core 
     Qt6::Gui 
     Qt6::Widgets 

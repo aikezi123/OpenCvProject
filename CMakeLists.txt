@@ -1,4 +1,4 @@
-#根目录CMakeLists文件夹作用：
+﻿#根目录CMakeLists文件夹作用：
 #统筹全局。它不直接编译任何 C++ 代码，而是负责设置全局的环境变量（如 C++ 标准、OpenCV 路径、输出目录），
 #并规定各个子模块的加载顺序。
 
@@ -35,7 +35,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # 如果顺序写反了（比如先加 UI 再加 Infrastructure），CMake 会因为找不到底层的库而报错。
 add_subdirectory(Common)
 add_subdirectory(Business)
-add_subdirectory(Infrastructure)
 add_subdirectory(Service)
-add_subdirectory(Application)
+add_subdirectory(Infrastructure)
 add_subdirectory(UI)
+add_subdirectory(Application)
