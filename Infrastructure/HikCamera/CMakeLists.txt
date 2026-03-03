@@ -3,7 +3,7 @@ file(GLOB_RECURSE HIK_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE HIK_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 
 # 2. 生成 Infrastructure 的海康插件库 (动态或静态)
-add_library(HikCamera SHARED
+add_library(HikCamera STATIC
     ${HIK_SOURCES} 
     ${HIK_HEADERS}
 )
@@ -32,14 +32,7 @@ set(HIK_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/Hikvision")
 target_include_directories(HikCamera PRIVATE 
     "${HIK_SDK_DIR}/include"
 )
-
-# B. 链接库文件目录 (让连接器能找到 .lib 所在的文件夹)
-# 注意区分 64 位还是 32 位，这里假设是 64 位 win64
-target_link_directories(HikCamera PRIVATE 
-    "${HIK_SDK_DIR}/libraries"
-)
-
-# C. 链接具体的 .lib 文件
+#直接把路径和文件名拼在一起传给 target_link_libraries
 target_link_libraries(HikCamera PRIVATE 
-    MvCameraControl.lib 
+    "${HIK_SDK_DIR}/libraries/MvCameraControl.lib"
 )

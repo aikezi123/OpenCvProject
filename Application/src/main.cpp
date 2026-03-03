@@ -1,16 +1,19 @@
-﻿#include <QApplication>
-#include "MainWindow.h"
+﻿// Application/src/main.cpp
+#include <QApplication>
+#include "AppManager.h"
 
-// 极其重要：必须是 (int argc, char *argv[])，绝不能是 int main() 无参！
 int main(int argc, char* argv[]) {
     QApplication a(argc, argv);
 
-    // 【新增核心代码】：手动初始化 UI 层的资源文件！
-    // 括号里的名字必须与你的 .qrc 文件名完全一致（你的文件叫 Resource.qrc）
-    Q_INIT_RESOURCE(Resource);
+    // 实例化总调度师
+    AppManager appManager;
 
-    MainWindow w;
-    w.show();
+    // 让调度师去完成所有底层组装
+    appManager.initialize();
 
+    // 点火启动
+    appManager.start();
+
+    // 进入 Qt 的事件循环
     return a.exec();
 }

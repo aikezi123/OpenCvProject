@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QTreeWidgetItem>
+#include "CameraView.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,9 +17,12 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-private:
-    Ui::MainWindow* ui;
 
+// ——————接口函数———————
+public:
+    CameraView* getCameraView() const { return m_cameraView; }
+
+private:
     // 初始化流
     void initUIStyle();
     void initPages();
@@ -39,6 +44,10 @@ private:
     // 纯 UI 美化层：只负责给节点绘制图标和箭头
     // ==========================================
     void decorateParentNodeUI(QTreeWidgetItem* item, const QString& name, const QString& iconPath, bool hasArrow);
+
+private:
+    Ui::MainWindow* ui;
+    CameraView* m_cameraView = nullptr;
 };
 
 #endif // MAINWINDOW_H

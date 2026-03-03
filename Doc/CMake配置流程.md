@@ -1,4 +1,4 @@
-# CMake配置流程
+﻿# CMake配置流程
 
 ## 一. CMake的基本配置流程
 
@@ -456,7 +456,7 @@ target_link_libraries(MyGame
 **1. 完整语法结构**
 
 ```CMake
-add_library(<name> [STATIC | SHARED | MODULE | INTERFACE]
+add_library(<name> [STATIC | STATIC | MODULE | INTERFACE]
             [EXCLUDE_FROM_ALL]
             [source1] [source2 ...])
 ```
@@ -470,7 +470,7 @@ add_library(<name> [STATIC | SHARED | MODULE | INTERFACE]
   - **`STATIC` (静态库)**：编译时，你的代码会被直接“塞进”调用者的程序里。
     - *优点*：调用者生成的可执行文件是独立的，不需要附带额外的动态库文件。
     - *缺点*：如果多个程序都用了你的库，代码会被复制多份，导致体积膨胀。
-  - **`SHARED` (动态库)**：编译时生成独立的动态链接库（Windows 的 `.dll`，Linux 的 `.so`）。调用者只记录“我要用它”，运行时再去内存里加载。
+  - **`STATIC` (动态库)**：编译时生成独立的动态链接库（Windows 的 `.dll`，Linux 的 `.so`）。调用者只记录“我要用它”，运行时再去内存里加载。
     - *优点*：节省硬盘和内存，方便热更新（直接替换 dll 即可）。
     - *缺点*：容易引发经典的“找不到 xxx.dll”报错。
   - **`MODULE` (模块库)**：一种特殊的动态库，它**不能**在编译时被其他目标通过 `target_link_libraries` 链接。它只能在程序运行时，通过代码（如 C++ 的 `LoadLibrary` 或 Linux 的 `dlopen`）手动加载。通常用于**编写插件系统**。
@@ -529,13 +529,13 @@ target_include_directories(<target> [SYSTEM] [BEFORE]
 这个命令的作用是把你的 `.cpp` 源文件编译成一个库文件。它的核心语法如下：
 
 ```cmake
-add_library(<name> [STATIC | SHARED | INTERFACE] source1.cpp source2.cpp ...)
+add_library(<name> [STATIC | STATIC | INTERFACE] source1.cpp source2.cpp ...)
 ```
 
 - **`<name>`**：你给这个库起的名字（比如 `MyMathLib`）。CMake 最终生成的物理文件名会自动加上前缀和后缀（比如在 Windows 下生成 `MyMathLib.lib` 或 `MyMathLib.dll`，在 Linux 下生成 `libMyMathLib.a` 或 `libMyMathLib.so`）。
 - **库的类型（三大金刚）：**
   1. **`STATIC` (静态库 .lib / .a)：** 编译时直接把代码“揉”进最终的 `.exe` 里。优点是发布程序时不需要带一堆 dll，缺点是生成的 `.exe` 体积较大。
-  2. **`SHARED` (动态库 .dll / .so)：** 编译时独立存在，程序运行时再去加载它。优点是可以多个程序共享，节省内存，方便热更新；缺点是容易遇到“找不到 dll”的报错。
+  2. **`STATIC` (动态库 .dll / .so)：** 编译时独立存在，程序运行时再去加载它。优点是可以多个程序共享，节省内存，方便热更新；缺点是容易遇到“找不到 dll”的报错。
   3. **`INTERFACE` (仅头文件库 / 纯接口库)：** 如果你的库全都是模板代码（写在 `.h` 或 `.hpp` 里），根本没有 `.cpp` 文件需要编译，就用这个。
 
 **代码示例：**
@@ -733,7 +733,7 @@ target_sources(MyApp PRIVATE network.cpp database.cpp)
 | ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **`CMAKE_PREFIX_PATH`** | **查找第三方包的最高优先级路径。**                           | 当 `find_package` 找不到库时，直接把库的安装路径加进这个变量里（比写死 `OpenCV_DIR` 更通用）。 |
 | **`CMAKE_MODULE_PATH`** | 告诉 CMake 去哪里找 `.cmake` 扩展脚本。                      | 如果你自己写了一个 `FindMyLib.cmake` 的脚本，要把它的路径塞进这里。 |
-| **`BUILD_SHARED_LIBS`** | 全局开关：当你在代码里写 `add_library(MyLib)`（不带 STATIC 或 SHARED）时，默认生成哪种库。 | 设置为 `ON` 则全项目默认生成动态库（dll），为 `OFF` 默认生成静态库（lib）。 |
+| **`BUILD_SHARED_LIBS`** | 全局开关：当你在代码里写 `add_library(MyLib)`（不带 STATIC 或 STATIC）时，默认生成哪种库。 | 设置为 `ON` 则全项目默认生成动态库（dll），为 `OFF` 默认生成静态库（lib）。 |
 
 
 
@@ -904,7 +904,7 @@ CMake 配置阶段是整个 C++ 构建流水线的起点。CMake 作为跨平台
 >
 > `[12/24] Linking CXX shared library bin\OpenCvVision.dll`
 
-- **工作原理**：根据 CMake 的 `SHARED` 配置，链接器将底层各个模块所属的 `.obj` 文件打包。在 Windows 体系下，这一步会同步生成两个文件：包含实际运行机器码的 `.dll` 动态链接库，以及体积极小的 `.lib` 导入库（充当供上层调用的“寻址地图”）。
+- **工作原理**：根据 CMake 的 `STATIC` 配置，链接器将底层各个模块所属的 `.obj` 文件打包。在 Windows 体系下，这一步会同步生成两个文件：包含实际运行机器码的 `.dll` 动态链接库，以及体积极小的 `.lib` 导入库（充当供上层调用的“寻址地图”）。
 
 **2. 严格遵循依赖图谱的时序 (Dependency Graph)**
 
@@ -1149,7 +1149,7 @@ CMake 配置阶段是整个 C++ 构建流水线的起点。CMake 作为跨平台
 
 **形态 B：导入库 (Import Library) —— “寻址地图”**
 
-- **派生关系**：当你使用 CMake 的 `SHARED` 指令要求生成动态链接库（`.dll`）时，链接器会生成 `.dll` 本身（存放真实的机器码），同时**伴生**生成一个同名的 `.lib` 文件。
+- **派生关系**：当你使用 CMake 的 `STATIC` 指令要求生成动态链接库（`.dll`）时，链接器会生成 `.dll` 本身（存放真实的机器码），同时**伴生**生成一个同名的 `.lib` 文件。
 - **本质区别**：这个导入库 `.lib` 里面**没有任何机器码（不包含任何 `.obj`）**！它仅仅是一份体积微小的“寻址地图”。它记录了 `.dll` 中暴露了哪些函数，以及这些函数在 `.dll` 里的相对位置。
 - **使用方式**：当 `AppUI.exe` 链接这个导入库时，链接器只是把这份“地图”抄写进了 `.exe` 中。程序运行时，操作系统会根据这份地图去寻找对应的 `.dll` 文件。
 - **体积**：极其微小（通常只有几 KB 到几十 KB）。
@@ -1259,14 +1259,14 @@ target_include_directories(MyStaticModule PUBLIC ./include)
 
 动态库在 Windows 下表现为 `.dll`（运行时代码实体）和轻量级的导入库 `.lib`（链接期寻址地图）的组合。
 
-**1. 配置流程** 在对应模块的 `CMakeLists.txt` 中，使用 `SHARED` 关键字声明目标：
+**1. 配置流程** 在对应模块的 `CMakeLists.txt` 中，使用 `STATIC` 关键字声明目标：
 
 ```CMake
 # 声明一个动态库目标
-add_library(MySharedModule SHARED ${SOURCES} ${HEADERS})
+add_library(MySharedModule STATIC ${SOURCES} ${HEADERS})
 ```
 
-**2. 核心机制与注意事项（Windows 平台的符号导出壁垒）** 与 Linux 环境默认公开所有符号不同，Windows 的 MSVC 编译器极其保守，**默认隐藏 DLL 中的所有类和函数**。如果单纯只把 `STATIC` 改成 `SHARED`，会在链接期引发大量的 `LNK2019` 或 `LNK2001` 无法解析外部符号错误。
+**2. 核心机制与注意事项（Windows 平台的符号导出壁垒）** 与 Linux 环境默认公开所有符号不同，Windows 的 MSVC 编译器极其保守，**默认隐藏 DLL 中的所有类和函数**。如果单纯只把 `STATIC` 改成 `STATIC`，会在链接期引发大量的 `LNK2019` 或 `LNK2001` 无法解析外部符号错误。
 
 针对此问题，需采取以下两种规范的解决方案：
 
@@ -1302,7 +1302,7 @@ class MY_MODULE_EXPORT MyWorker : public QObject {
 **步骤②：在当前 DLL 模块的 CMake 中激活“发货”状态** 通过 `target_compile_definitions` 悄悄注入宏定义，告诉编译器当前正在构建 DLL 自身：
 
 ```CMake
-add_library(MySharedModule SHARED ${SOURCES} ${HEADERS})
+add_library(MySharedModule STATIC ${SOURCES} ${HEADERS})
 
 # 激活导出宏，仅对自身（PRIVATE）有效
 target_compile_definitions(MySharedModule PRIVATE BUILD_MY_MODULE_DLL)

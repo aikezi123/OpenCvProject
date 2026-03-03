@@ -84,6 +84,12 @@ void MainWindow::initPages() {
     QTreeWidgetItem* rootUpdate = addCategoryNode("升级", defaultIcon);
     addBusinessPage(rootUpdate, "固件升级", new FirmWareUpgradeView(this));
     addBusinessPage(rootUpdate, "软件升级", new SoftWareUpgrade(this));
+   
+    // —————— 图像处理模块 ———————
+    QTreeWidgetItem* rootImageProcess = addCategoryNode("图像处理", defaultIcon);
+    m_cameraView = new CameraView(this); // 先创建实例，后面 getCameraView() 可能会用到
+    addBusinessPage(rootImageProcess, "相机", m_cameraView);
+
 
 
     // 初始化时展开所有节点

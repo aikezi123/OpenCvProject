@@ -21,7 +21,7 @@ file(GLOB_RECURSE UI_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.
 # ==========================================
 # 4. 生成UI库 (修改为 STATIC)
 # ==========================================
-add_library(AppUI SHARED ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS} ${UI_RESOURCES})
+add_library(AppUI STATIC ${UI_SOURCES} ${UI_HEADERS} ${UI_FORMS} ${UI_RESOURCES})
 
 # ==========================================
 # 5. 自动解析并绑定所有的 include 路径 (必须是 PUBLIC)
@@ -61,5 +61,7 @@ target_link_libraries(AppUI PUBLIC
     Qt6::Core 
     Qt6::Gui 
     Qt6::Widgets 
+    CameraService
+    HikCamera
     CommonLogger
 )

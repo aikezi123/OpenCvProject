@@ -5,17 +5,22 @@
 # 必须加上这两句，让 Application 层认识 Qt
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
-# 1. 生成最终的可执行程序 (WIN32 参数隐藏 Windows 黑色控制台)
-add_executable(MainApp WIN32 
-    src/main.cpp
-)
+set(CMAKE_AUTOMOC ON)
 
-# 2. 链接所有业务模块和 UI 库
-target_link_libraries(MainApp PRIVATE 
-    AppUI            # 链接刚刚在 UI 层生成的静态库
-    Qt6::Widgets   # 链接 Qt 库
-    # 如果你在 main 函数中需要直接实例化底层的服务来进行依赖注入，这里也需要链接它们：
-    # VideoFilterService 
-    # DbClient
-    # CommonLogger
+# 抓取源码
+file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE APP_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+
+add_executable(MainApp ${APP_SOURCES} ${APP_HEADERS})
+
+# 暴露 include 目录
+target_include_directories(MainApp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# 链接你所有的层
+target_link_libraries(MainApp PRIVATE
+    AppUI
+    CameraService
+    HikCamera
+    Qt6::Core
+    Qt6::Widgets
 )
