@@ -1,1 +1,1 @@
-﻿add_subdirectory(VideoProcess)
+﻿add_subdirectory(CameraCore)

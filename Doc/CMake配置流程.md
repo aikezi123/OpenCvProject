@@ -1451,6 +1451,32 @@ target_link_libraries(AppUI PRIVATE
 
 
 
+#### 2.5 如何引入第三方库
+
+以连接第三方海康相机驱动的库为例。海康相机驱动的头文件在Includes文件夹中，库文件在Libraries文件夹中。如下：
+
+![image-20260303135923726](https://cdn.jsdelivr.net/gh/aikezi123/ImageHost/img/20260303135923957.png)
+
+##### 2.5.1 步骤1：将第三方库拷贝到项目文件夹中
+
+在项目文件中最好建立一个3rdpart第三方库文件夹用来专门管理第三方的库。在3rdpart中增加Hikvision文件夹用来存放海康驱动的第三方库。将海康驱动文件夹中Includes文件夹中内容拷贝到3rdparty/Hikvision/include中，将海康驱动文件夹中Libraries文件夹中内容拷贝到3rdparty/Hikvision/libraries文件夹中。
+
+![image-20260303140100739](https://cdn.jsdelivr.net/gh/aikezi123/ImageHost/img/20260303140100863.png)
+
+
+
+##### 2.5.2 步骤2：修改需要引入第三方库项目的CMakeLists文件
+
+- 例如这里HikCamera项目需要引入第三方库，点击打开HiKCamera项目的CMakeLists文件夹。
+
+![image-20260303140438872](https://cdn.jsdelivr.net/gh/aikezi123/ImageHost/img/20260303140438983.png)
+
+- 设置包含第三方库的头文件目录、库文件目录、以及连接具体的.lib文件，如下:
+
+![image-20260303140640355](https://cdn.jsdelivr.net/gh/aikezi123/ImageHost/img/20260303140640487.png)
+
+
+
 ## 二. 依赖倒置架构（洋葱架构）
 
 ### 1.系统架构演进：从传统分层到洋葱架构
