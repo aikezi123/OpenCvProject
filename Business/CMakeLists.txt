@@ -1,2 +1,1 @@
-add_subdirectory(TargetRecognition)
-add_subdirectory(VideoProcess)
+﻿add_subdirectory(VideoProcess)

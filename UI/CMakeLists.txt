@@ -60,5 +60,4 @@ target_link_libraries(AppUI PRIVATE
     Qt6::Gui 
     Qt6::Widgets 
     CommonLogger
-    EyeTrackingApp
 )

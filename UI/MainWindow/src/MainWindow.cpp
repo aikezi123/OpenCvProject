@@ -5,8 +5,6 @@
 #include <QLabel>
 
 // 引入你的各个业务页面头文件
-#include "VideoTrackWidgetView.h"
-#include "ImageShowView.h"
 #include "FirmWareUpgradeView.h"
 #include "SoftWareUpgrade.h"
 #include "FrontPageView.h"
@@ -87,10 +85,6 @@ void MainWindow::initPages() {
     addBusinessPage(rootUpdate, "固件升级", new FirmWareUpgradeView(this));
     addBusinessPage(rootUpdate, "软件升级", new SoftWareUpgrade(this));
 
-    // —————— 图像处理模块 ——————
-    QTreeWidgetItem* rootVision = addCategoryNode("图像处理", defaultIcon);
-    addBusinessPage(rootVision, "单图瞳孔分析", new ImageShowView(this));
-    addBusinessPage(rootVision, "相机图像采集", new VideoTrackWidgetView(this));
 
     // 初始化时展开所有节点
     ui->treeWidget->expandAll();
