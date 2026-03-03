@@ -12,41 +12,22 @@ CameraService::~CameraService() {
 }
 
 void CameraService::startWorkLoop() {
-    if (!m_camera) {
-        emit serviceMessage("Error: Camera instance is null!");
-        return;
-    }
-
-    m_isWorking = true;
-    cv::Mat frame;
-
-    emit serviceMessage("Camera service worker loop started.");
+    if (!m_camera) return;
 
     // ====================================================
-    // 核心流水线：这是一个死循环，由于它会被 moveToThread 扔进子线程，
-    // 所以这里的死循环绝对不会卡死主界面的 UI！
+    // 依赖注入的核心：把带有 Qt 信号的 Lambda 塞给纯 C++ 的底层！
     // ====================================================
-    while (m_isWorking) {
-        // 1. 同步向底层硬件索要一帧图像 (超时时间 1000ms)
-        bool success = m_camera->grabFrame(frame, 1000);
+    m_camera->registerFrameCallback([this](const cv::Mat& frame) {
+        // 这个 Lambda 实际是在海康的底层线程中被触发的
+        // 但放心，Qt 的 emit 非常聪明，它发现跨线程时，会自动变成队列投递 (QueuedConnection)
+        // 绝对不会卡死或者搞崩 UI 线程！
+        emit frameReadyToShow(frame);
+        });
 
-        if (success && !frame.empty()) {
+    // 告诉底层：开始取流吧，有图了就调我上面那个 Lambda
+    m_camera->startStream();
 
-            // 2. (预留位置)：未来你可以在这里加上 OpenCV 的图像滤波、特征识别等算法
-            // cv::Mat processedFrame = doSomeVisionAlgorithm(frame);
-
-            // 3. 将图像发射出去！
-            // UI 层只需要连接这个信号，就能在界面上画图了。
-            emit frameReadyToShow(frame);
-
-        }
-        else {
-            // 如果超时没抓到图，可以在这里记录日志，循环会继续重试
-            // qDebug() << "Grab frame timeout or failed.";
-        }
-    }
-
-    emit serviceMessage("Camera service worker loop stopped.");
+    emit serviceMessage("Camera async callback registered and stream started.");
 }
 
 void CameraService::stopWorkLoop() {

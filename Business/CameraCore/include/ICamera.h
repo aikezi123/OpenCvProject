@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <functional>
 
 // =========================================================
 // 相机状态枚举：规范化错误处理，避免只返回 true/false
@@ -30,6 +31,10 @@ struct CameraInfo {
         return modelName + " (" + serialNumber + ")";
     }
 };
+
+// 定义一个标准的纯 C++ 回调函数签名
+// 意思是：我需要一个函数，它接收一个 cv::Mat，并且没有返回值
+using FrameCallback = std::function<void(const cv::Mat&)>;
 
 // =========================================================
 // ICamera 核心设备接口 (Business 层契约)
@@ -66,7 +71,12 @@ public:
     // ---------------------------------------------------------
     // 2. 视频流控制
     // ---------------------------------------------------------
-
+    // 异步回调机制
+    /**
+     * @brief 注册图像抓取回调函数
+     * @param callback 外部传入的函数对象 (Lambda, 类的成员函数等)
+     */
+    virtual void registerFrameCallback(FrameCallback callback) = 0;
     /**
      * @brief 开始向内存传输图像数据（启动底层的连续抓图机制）
      */
