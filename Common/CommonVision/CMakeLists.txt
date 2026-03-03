@@ -16,5 +16,5 @@ target_include_directories(CommonVision INTERFACE
 
 # 4.将OpenCV的具体库文件传送给这个接口库
 target_link_libraries(CommonVision INTERFACE
-	${OPENCV_LIBS}
+	${OpenCV_LIBS}
 )

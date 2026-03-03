@@ -38,7 +38,7 @@ struct CameraInfo {
 class ICamera {
 public:
     // 【核心法则】：多态基类必须有虚析构函数！
-    // 确保 Application 层 delete 接口指针时，能正确调用底层实现类（如 HikCameraImpl）的析构函数。
+    // 确保 Application 层 delete 接口指针时，能正确调用底层实现类（如 HikCamera）的析构函数。
     virtual ~ICamera() = default;
 
     // ---------------------------------------------------------
