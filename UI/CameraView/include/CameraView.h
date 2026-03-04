@@ -13,6 +13,8 @@ public:
     explicit CameraView(QWidget* parent = nullptr);
     ~CameraView() override;
     void showMessage(const QString& msg);
+    void initLayout();
+    void initSignalConnects();
 
 public slots:
     // 专门用来接收 Service 层发来的图像

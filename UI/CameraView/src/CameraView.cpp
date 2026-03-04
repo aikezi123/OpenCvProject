@@ -3,8 +3,20 @@
 #include <QImage>
 #include <QPixmap>
 
+
+QString btnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #00b8cc; color: white; border-radius: 4px; }"
+"QPushButton:hover { background-color: #00d2e6; }";
+QString activeBtnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #ff9800; color: white; border-radius: 4px; }";
+
 // 构造函数初始化列表中，默认关闭实时流，关闭单帧捕获
 CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), m_captureNextFrame(false) {
+    initLayout();
+    initSignalConnects();
+
+    m_btnLiveStream->hide();
+
+}
+void CameraView::initLayout() {
     // 1. 视频主显示区 (默认纯黑)
     m_videoLabel = new QLabel(this);
     m_videoLabel->setAlignment(Qt::AlignCenter);
@@ -13,10 +25,6 @@ CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), 
     // 2. 底部控制栏
     m_btnLiveStream = new QPushButton("获取视频流 ", this);
     m_btnSnapshot = new QPushButton("捕获单帧 ", this);
-
-    QString btnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #00b8cc; color: white; border-radius: 4px; }"
-        "QPushButton:hover { background-color: #00d2e6; }";
-    QString activeBtnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #ff9800; color: white; border-radius: 4px; }";
 
     m_btnLiveStream->setStyleSheet(btnStyle);
     m_btnSnapshot->setStyleSheet(btnStyle);
@@ -33,11 +41,12 @@ CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), 
     mainLayout->addLayout(controlLayout);
     mainLayout->setContentsMargins(10, 10, 10, 10);
     setLayout(mainLayout);
-
+}
+void CameraView::initSignalConnects() {
     // ==========================================
-    // 4. 核心：精确的状态机切换
-    // ==========================================
-    connect(m_btnLiveStream, &QPushButton::clicked, this, [this, btnStyle, activeBtnStyle]() {
+// 4. 核心：精确的状态机切换
+// ==========================================
+    connect(m_btnLiveStream, &QPushButton::clicked, this, [this]() {
         m_isLiveMode = true;        // 开启常开阀门
         m_captureNextFrame = false; // 取消单帧特权
 
@@ -45,7 +54,7 @@ CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), 
         m_btnSnapshot->setStyleSheet(btnStyle);
         });
 
-    connect(m_btnSnapshot, &QPushButton::clicked, this, [this, btnStyle, activeBtnStyle]() {
+    connect(m_btnSnapshot, &QPushButton::clicked, this, [this]() {
         m_isLiveMode = false;       // 关掉常开阀门，让视频流停下
         m_captureNextFrame = true;  // 【精髓】：赋予下一帧特权，让它流进 UI！
 
@@ -53,6 +62,7 @@ CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), 
         m_btnLiveStream->setStyleSheet(btnStyle);
         });
 }
+
 
 CameraView::~CameraView() {}
 
