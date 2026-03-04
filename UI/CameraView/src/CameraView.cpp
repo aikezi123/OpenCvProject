@@ -3,54 +3,95 @@
 #include <QImage>
 #include <QPixmap>
 
-CameraView::CameraView(QWidget* parent) : QWidget(parent) {
-    // 1. 初始化底板控件
+// 构造函数初始化列表中，默认关闭实时流，关闭单帧捕获
+CameraView::CameraView(QWidget* parent) : QWidget(parent), m_isLiveMode(false), m_captureNextFrame(false) {
+    // 1. 视频主显示区 (默认纯黑)
     m_videoLabel = new QLabel(this);
     m_videoLabel->setAlignment(Qt::AlignCenter);
-
-    // 给视频区加一个纯黑色的背景，这样在没有图像时看起来像个真实的显示屏
     m_videoLabel->setStyleSheet("background-color: black;");
 
-    // 2. 将 Label 填满整个自定义 Widget
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(m_videoLabel);
-    layout->setContentsMargins(0, 0, 0, 0); // 消除边缘留白
-    setLayout(layout);
+    // 2. 底部控制栏
+    m_btnLiveStream = new QPushButton("获取视频流 ", this);
+    m_btnSnapshot = new QPushButton("捕获单帧 ", this);
+
+    QString btnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #00b8cc; color: white; border-radius: 4px; }"
+        "QPushButton:hover { background-color: #00d2e6; }";
+    QString activeBtnStyle = "QPushButton { padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #ff9800; color: white; border-radius: 4px; }";
+
+    m_btnLiveStream->setStyleSheet(btnStyle);
+    m_btnSnapshot->setStyleSheet(btnStyle);
+
+    QHBoxLayout* controlLayout = new QHBoxLayout();
+    controlLayout->addStretch();
+    controlLayout->addWidget(m_btnLiveStream);
+    controlLayout->addSpacing(20);
+    controlLayout->addWidget(m_btnSnapshot);
+    controlLayout->addStretch();
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(m_videoLabel, 1);
+    mainLayout->addLayout(controlLayout);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    setLayout(mainLayout);
+
+    // ==========================================
+    // 4. 核心：精确的状态机切换
+    // ==========================================
+    connect(m_btnLiveStream, &QPushButton::clicked, this, [this, btnStyle, activeBtnStyle]() {
+        m_isLiveMode = true;        // 开启常开阀门
+        m_captureNextFrame = false; // 取消单帧特权
+
+        m_btnLiveStream->setStyleSheet(activeBtnStyle);
+        m_btnSnapshot->setStyleSheet(btnStyle);
+        });
+
+    connect(m_btnSnapshot, &QPushButton::clicked, this, [this, btnStyle, activeBtnStyle]() {
+        m_isLiveMode = false;       // 关掉常开阀门，让视频流停下
+        m_captureNextFrame = true;  // 【精髓】：赋予下一帧特权，让它流进 UI！
+
+        m_btnSnapshot->setStyleSheet(activeBtnStyle);
+        m_btnLiveStream->setStyleSheet(btnStyle);
+        });
 }
 
 CameraView::~CameraView() {}
 
+// ==========================================
+// 5. 渲染拦截与画面定格控制
+// ==========================================
 void CameraView::onFrameReady(const cv::Mat& frame) {
     if (frame.empty()) return;
 
-    QImage qImg;
-    cv::Mat rgbMat; // 提上来作为局部变量，确保生命周期
+    // 【核心控制阀门】：如果既不是“实时视频模式”，也没有获得“单帧放行特权”，直接丢弃画面！
+    if (!m_isLiveMode && !m_captureNextFrame) return;
 
+    // ---- 图像格式转换 (OpenCV Mat -> Qt QImage) ----
+    QImage qImg;
     if (frame.channels() == 1) {
         qImg = QImage((const unsigned char*)(frame.data),
             frame.cols, frame.rows, frame.step,
             QImage::Format_Grayscale8);
     }
     else if (frame.channels() == 3) {
-        // 【核心修复】：彻底消灭阿凡达！
-        // 强制把 OpenCV 的 BGR 转换为 Qt 喜欢的 RGB
-        cv::cvtColor(frame, rgbMat, cv::COLOR_BGR2RGB);
-
-        // 告诉 Qt 这是标准的 RGB888 格式
-        qImg = QImage((const unsigned char*)(rgbMat.data),
-            rgbMat.cols, rgbMat.rows, rgbMat.step,
+        qImg = QImage((const unsigned char*)(frame.data),
+            frame.cols, frame.rows, frame.step,
             QImage::Format_RGB888);
     }
 
     if (qImg.isNull()) return;
 
-    // 极速缩放并渲染上屏
-    // 注意：qImg.scaled() 会进行深拷贝，所以即使局部变量 rgbMat 随后销毁也是安全的
+    // 极速缩放并渲染到界面上
     QImage scaledImg = qImg.scaled(m_videoLabel->size(),
         Qt::KeepAspectRatio,
         Qt::FastTransformation);
-
     m_videoLabel->setPixmap(QPixmap::fromImage(scaledImg));
+
+    // ---- 拦截后续操作 ----
+    // 如果刚才使用的是“单帧放行特权”，现在图已经画到屏幕上了，特权必须立刻收回！
+    // 这样下一帧就会被上面的 if 拦截掉，画面完美定格。
+    if (m_captureNextFrame) {
+        m_captureNextFrame = false;
+    }
 }
 
 void CameraView::showMessage(const QString& msg) {

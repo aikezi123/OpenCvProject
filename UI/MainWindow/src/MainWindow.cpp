@@ -117,7 +117,7 @@ void MainWindow::connectSignals() {
         if (item->childCount() > 0) {
             item->setExpanded(!item->isExpanded());
         }
-        });
+    });
 
     //  3. 动画逻辑：节点展开时 -> 箭头朝上
     connect(ui->treeWidget, &QTreeWidget::itemExpanded, this, [this](QTreeWidgetItem* item) {
@@ -128,7 +128,7 @@ void MainWindow::connectSignals() {
                 arrowLab->setPixmap(QPixmap(":/Image/MainWindow/Image/MainWindow/Icon/arrow-up.png").scaled(12, 12, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             }
         }
-        });
+    });
 
     //  4. 动画逻辑：节点收缩时 -> 箭头朝下
     connect(ui->treeWidget, &QTreeWidget::itemCollapsed, this, [this](QTreeWidgetItem* item) {
@@ -139,7 +139,7 @@ void MainWindow::connectSignals() {
                 arrowLab->setPixmap(QPixmap(":/Image/MainWindow/Image/MainWindow/Icon/arrow-down.png").scaled(12, 12, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             }
         }
-        });
+    });
 }
 
 // ==============================================================================

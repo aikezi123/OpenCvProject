@@ -34,8 +34,14 @@ public:
     // 给底层的全局 C 函数用的公开触发接口 (解决 C2039 报错)
     void triggerCallback(const cv::Mat& frame);
 
+    void processAndTrigger(unsigned char* pData, void* pFrameInfo);
+
 private:
     void* m_handle;             // 海康相机句柄
     bool m_isStreaming;         // 取流标志位
     FrameCallback m_callback;   // 保存上层传进来的业务逻辑
+
+    // 【新增】：复刻 Demo 的核心优化
+    std::mutex m_mutex;                      // C++ 标准锁，取代 QMutex
+    std::vector<unsigned char> m_convertBuf; // 转换缓存池，取代 malloc
 };
