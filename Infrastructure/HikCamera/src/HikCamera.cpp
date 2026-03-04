@@ -6,17 +6,39 @@
 
 // ====================================================
 // 全局自由函数：作为海康 SDK 的 C 语言风格回调接收器
+// 带智能色彩解码的回调
 // ====================================================
 static void __stdcall GlobalImageCallback(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser) {
     if (pUser) {
-        // 1. 将 void* 上下文强转回相机类实例
         HikCamera* pCamera = static_cast<HikCamera*>(pUser);
 
-        // 2. 将海康数据转换为 OpenCV Mat 格式 (这里假设是 8位单通道灰度图)
-        cv::Mat tempMat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
+        // 1. 将海康数据套上 OpenCV 的壳子 (此时还是原始的单通道数据)
+        cv::Mat rawMat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData);
+        cv::Mat colorMat;
 
-        // 3. 触发类内部的回调触发器 (必须 clone 深拷贝！)
-        pCamera->triggerCallback(tempMat.clone());
+        // 2. 识别像素格式，进行色彩还原 (Bayer 还原为 RGB)
+        // 注意：海康不同型号的彩色相机可能输出不同的 Bayer 阵列，这里覆盖了最常见的四种
+        switch (pFrameInfo->enPixelType) {
+        case PixelType_Gvsp_BayerRG8:
+            cv::cvtColor(rawMat, colorMat, cv::COLOR_BayerRG2BGR); // 改为 BGR
+            break;
+        case PixelType_Gvsp_BayerGB8:
+            cv::cvtColor(rawMat, colorMat, cv::COLOR_BayerGB2BGR); // 改为 BGR
+            break;
+        case PixelType_Gvsp_BayerGR8:
+            cv::cvtColor(rawMat, colorMat, cv::COLOR_BayerGR2BGR); // 改为 BGR
+            break;
+        case PixelType_Gvsp_BayerBG8:
+            cv::cvtColor(rawMat, colorMat, cv::COLOR_BayerBG2BGR); // 改为 BGR
+            break;
+        default:
+            // 如果是纯黑白相机 (Mono8)，或者无法识别，就保持灰度图
+            colorMat = rawMat.clone();
+            break;
+        }
+
+        // 3. 将处理好的真彩色图像发送出去！
+        pCamera->triggerCallback(colorMat);
     }
 }
 
@@ -72,13 +94,91 @@ CameraStatus HikCamera::stopStream() {
 
 std::vector<CameraInfo> HikCamera::enumDevices() {
     std::vector<CameraInfo> cameraList;
-    // ... 这里写你之前的枚举逻辑 ...
+    MV_CC_DEVICE_INFO_LIST stDeviceList;
+    memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
+
+    // 只枚举 USB 接口的相机 (MV_USB_DEVICE)
+    int nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDeviceList);
+    if (nRet != MV_OK) {
+        std::cerr << "[HikCamera] 枚举 USB 设备失败! 错误码: " << std::hex << nRet << std::endl;
+        return cameraList;
+    }
+
+    for (unsigned int i = 0; i < stDeviceList.nDeviceNum; i++) {
+        MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
+        CameraInfo info;
+
+        // 只处理 USB 设备的信息提取
+        if (pDeviceInfo->nTLayerType == MV_USB_DEVICE) {
+            info.serialNumber = reinterpret_cast<char*>(pDeviceInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
+            info.modelName = reinterpret_cast<char*>(pDeviceInfo->SpecialInfo.stUsb3VInfo.chModelName);
+            info.ipAddress = "USB3.0 Direct Connection"; // USB 没有 IP，给个提示占位
+
+            cameraList.push_back(info);
+        }
+    }
+
     return cameraList;
 }
 
 CameraStatus HikCamera::openDevice(const std::string& serialNumber) {
-    // ... 这里写你之前的打开逻辑 ...
-    return CameraStatus::SUCCESS; // 示例
+    if (m_handle != nullptr) {
+        return CameraStatus::SUCCESS; // 已经打开了
+    }
+
+    MV_CC_DEVICE_INFO_LIST stDeviceList;
+
+    // 【修改点 3】：同样只在 USB 总线上找设备
+    int nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDeviceList);
+    if (nRet != MV_OK || stDeviceList.nDeviceNum == 0) {
+        return CameraStatus::DEVICE_NOT_FOUND;
+    }
+
+    int targetIndex = -1;
+
+    if (!serialNumber.empty()) {
+        for (unsigned int i = 0; i < stDeviceList.nDeviceNum; i++) {
+            MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
+
+            if (pDeviceInfo->nTLayerType == MV_USB_DEVICE) {
+                std::string currentSerial = reinterpret_cast<char*>(pDeviceInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
+                if (currentSerial == serialNumber) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+        }
+        if (targetIndex == -1) return CameraStatus::DEVICE_NOT_FOUND;
+    }
+    else {
+        targetIndex = 0; // 默认打开第一台 USB 相机
+    }
+
+    // 1. 创建句柄
+    nRet = MV_CC_CreateHandle(&m_handle, stDeviceList.pDeviceInfo[targetIndex]);
+    if (nRet != MV_OK) return CameraStatus::OPEN_FAILED;
+
+    // 1. 开启连续自动曝光 (ExposureAuto = 2)
+    MV_CC_SetEnumValue(m_handle, "ExposureAuto", 2);
+
+    // 2. 开启连续自动白平衡 (BalanceWhiteAuto = 2)
+    MV_CC_SetEnumValue(m_handle, "BalanceWhiteAuto", 2);
+
+    // 2. 打开设备
+    nRet = MV_CC_OpenDevice(m_handle);
+    if (nRet != MV_OK) {
+        MV_CC_DestroyHandle(m_handle);
+        m_handle = nullptr;
+        return CameraStatus::OPEN_FAILED;
+    }
+
+    // 3. 强制设置为“连续抓图模式” (关闭触发模式)
+    nRet = MV_CC_SetEnumValue(m_handle, "TriggerMode", 0);
+    if (nRet != MV_OK) {
+        std::cerr << "[HikCamera] 警告：关闭触发模式失败!" << std::endl;
+    }
+
+    return CameraStatus::SUCCESS;
 }
 
 CameraStatus HikCamera::closeDevice() {

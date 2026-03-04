@@ -1,9 +1,11 @@
 ﻿// Application/src/main.cpp
 #include <QApplication>
 #include "AppManager.h"
+#include <QMetaType> // 加上头文件
 
 int main(int argc, char* argv[]) {
     QApplication a(argc, argv);
+    qRegisterMetaType<cv::Mat>("cv::Mat");
 
     // 实例化总调度师
     AppManager appManager;

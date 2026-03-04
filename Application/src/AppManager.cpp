@@ -11,13 +11,19 @@ AppManager::AppManager(QObject* parent)
 }
 
 AppManager::~AppManager() {
-    // 优雅退出机制：严格按照创建的逆序进行销毁
+    // 1. 【极其致命的顺序】：必须先让底层硬件彻底停止抓图，掐断幽灵回调的源头！
+    if (m_camera) {
+        m_camera->stopStream();
+        m_camera->closeDevice();
+    }
+
+    // 2. 然后再优雅退出 Qt 线程
     if (m_cameraThread) {
         m_cameraThread->quit();
         m_cameraThread->wait();
     }
-    
-    // Qt 的对象树或智能指针会自动处理一些，但手动管理裸指针更显式安全
+
+    // 3. 最后再安全地释放各层指针 (此时绝对不会再有回调来打扰它们了)
     delete m_cameraService;
     delete m_camera;
     delete m_mainWindow;
@@ -55,10 +61,17 @@ void AppManager::wireConnections() {
 }
 
 void AppManager::start() {
-    // 启动顺序：先开硬件，再开线程，最后展示 UI
-    if (m_camera->openDevice() == CameraStatus::SUCCESS) {
+    CameraStatus status = m_camera->openDevice();
+
+    if (status == CameraStatus::SUCCESS) {
+        qDebug() << "[AppManager] 相机打开成功，启动数据流线程！";
         m_cameraThread->start();
     }
-    
+    else {
+        qDebug() << "[AppManager] 致命错误：相机打开失败！错误码：" << static_cast<int>(status);
+        // 直接在黑屏上打出提示语！
+        m_mainWindow->getCameraView()->showMessage("相机连接失败，请检查网线、电源或 IP 配置！");
+    }
+
     m_mainWindow->show();
 }
