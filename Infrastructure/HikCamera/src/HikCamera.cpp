@@ -110,7 +110,7 @@ CameraStatus HikCamera::openDevice(const std::string& serialNumber) {
     }
 
     // C. 强设核心参数 (连续曝光、自动白平衡、关闭触发)
-    MV_CC_SetEnumValue(m_handle, "ExposureAuto", 2);
+    MV_CC_SetEnumValue(m_handle, "ExposureAuto", 0);
     MV_CC_SetEnumValue(m_handle, "BalanceWhiteAuto", 2);
     MV_CC_SetEnumValue(m_handle, "TriggerMode", 0);
 
@@ -166,10 +166,67 @@ void HikCamera::processAndTrigger(unsigned char* pData, void* pInfo) {
 }
 
 // ====================================================
-// 5. 鸡肋接口 (为保持多态接口纯洁性而掏空)
+// 5. 核心参数控制 (真正调用海康 SDK 操作硬件)
 // ====================================================
-bool HikCamera::grabFrame(cv::Mat& outFrame, int timeoutMs) { return false; } // 纯异步下已废弃
-CameraStatus HikCamera::setExposureTime(float timeUs) { return CameraStatus::SUCCESS; }
-float HikCamera::getExposureTime() { return 0.0f; }
-CameraStatus HikCamera::setGain(float gain) { return CameraStatus::SUCCESS; }
-float HikCamera::getGain() { return 0.0f; }
+
+CameraStatus HikCamera::setExposureTime(float timeUs) {
+    if (m_handle == nullptr) return CameraStatus::OPEN_FAILED;
+
+    // 调用海康 SDK 写入曝光时间
+    int nRet = MV_CC_SetFloatValue(m_handle, "ExposureTime", timeUs);
+    if (nRet == MV_OK) {
+        return CameraStatus::SUCCESS;
+    }
+    std::cerr << "[HikCamera] 设置曝光时间失败! 错误码: " << std::hex << nRet << std::endl;
+    return CameraStatus::PARAM_SET_FAILED;
+}
+
+float HikCamera::getExposureTime() {
+    if (m_handle == nullptr) return 0.0f;
+
+    MVCC_FLOATVALUE stParam = { 0 };
+    int nRet = MV_CC_GetFloatValue(m_handle, "ExposureTime", &stParam);
+    if (nRet == MV_OK) {
+        return stParam.fCurValue;
+    }
+    return 0.0f;
+}
+
+CameraStatus HikCamera::setGain(float gain) {
+    if (m_handle == nullptr) return CameraStatus::OPEN_FAILED;
+
+    // 调用海康 SDK 写入增益
+    int nRet = MV_CC_SetFloatValue(m_handle, "Gain", gain);
+    if (nRet == MV_OK) {
+        return CameraStatus::SUCCESS;
+    }
+    std::cerr << "[HikCamera] 设置增益失败! 错误码: " << std::hex << nRet << std::endl;
+    return CameraStatus::PARAM_SET_FAILED;
+}
+
+float HikCamera::getGain() {
+    if (m_handle == nullptr) return 0.0f;
+
+    MVCC_FLOATVALUE stParam = { 0 };
+    int nRet = MV_CC_GetFloatValue(m_handle, "Gain", &stParam);
+    if (nRet == MV_OK) {
+        return stParam.fCurValue;
+    }
+    return 0.0f;
+}
+
+float HikCamera::getMaxGain() {
+    if (m_handle == nullptr) return 0.0f;
+
+    MVCC_FLOATVALUE stParam = { 0 };
+    int nRet = MV_CC_GetFloatValue(m_handle, "Gain", &stParam);
+    if (nRet == MV_OK) {
+        return stParam.fMax; // 拿取底层结构体里的最大值！
+    }
+    return 12.0f; // 如果获取失败，给个保守的保底值
+}
+
+// 纯异步架构下，同步抓图已被废弃，保留空实现以满足接口契约
+bool HikCamera::grabFrame(cv::Mat& outFrame, int timeoutMs) {
+    return false;
+}

@@ -33,3 +33,21 @@ void CameraService::startWorkLoop() {
 void CameraService::stopWorkLoop() {
     m_isWorking = false;
 }
+
+// ==========================================
+// 接收 UI 指令，并转发给底层硬件执行
+// ==========================================
+void CameraService::setExposureTime(double timeUs) {
+    if (m_camera) {
+        // 强转为 float，因为 ICamera 接口定义的是 float
+        m_camera->setExposureTime(static_cast<float>(timeUs));
+        qDebug() << "[CameraService] 已命令硬件修改曝光时间:" << timeUs << "us";
+    }
+}
+
+void CameraService::setGain(double gain) {
+    if (m_camera) {
+        m_camera->setGain(static_cast<float>(gain));
+        qDebug() << "[CameraService] 已命令硬件修改增益:" << gain;
+    }
+}

@@ -23,6 +23,7 @@ public:
 
     CameraStatus setGain(float gain) override;
     float getGain() override;
+    float getMaxGain() override;
 
     bool grabFrame(cv::Mat& outFrame, int timeoutMs = 1000) override;
 

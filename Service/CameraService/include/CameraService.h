@@ -20,6 +20,11 @@ public slots:
     // 停止业务主循环
     void stopWorkLoop();
 
+    // 接收 UI 传来的参数设置指令
+    void setExposureTime(double timeUs);
+    void setGain(double gain);
+
+
 signals:
     // 【跨界翻译】：当底层抓到纯 C++ 的 cv::Mat 图像后，通过 Qt 信号发给 UI 层
     void frameReadyToShow(const cv::Mat& image);

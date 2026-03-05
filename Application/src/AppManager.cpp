@@ -1,13 +1,13 @@
-﻿// Application/src/AppManager.cpp
-#include "AppManager.h"
-#include "HikCamera.h" // 只有实现文件需要知道具体的底层是谁
+﻿#include "AppManager.h"
+#include "HikCamera.h" 
+#include <QDebug>
 
-AppManager::AppManager(QObject* parent) 
-    : QObject(parent), 
-      m_mainWindow(nullptr), 
-      m_camera(nullptr), 
-      m_cameraService(nullptr), 
-      m_cameraThread(nullptr) {
+AppManager::AppManager(QObject* parent)
+    : QObject(parent),
+    m_mainWindow(nullptr),
+    m_camera(nullptr),
+    m_cameraService(nullptr),
+    m_cameraThread(nullptr) {
 }
 
 AppManager::~AppManager() {
@@ -48,16 +48,23 @@ void AppManager::initialize() {
 }
 
 void AppManager::wireConnections() {
-    // 线程启动 -> Service 开始抓图
-    connect(m_cameraThread, &QThread::started, 
-            m_cameraService, &CameraService::startWorkLoop);
+    // ---- A. 线程与生命周期 ----
+    connect(m_cameraThread, &QThread::started,
+        m_cameraService, &CameraService::startWorkLoop);
+    connect(m_cameraThread, &QThread::finished,
+        m_cameraThread, &QObject::deleteLater);
 
-    // Service 抓到图 -> 发送给 MainWindow 内部的 CameraView 进行绘制
-    connect(m_cameraService, &CameraService::frameReadyToShow, 
-            m_mainWindow->getCameraView(), &CameraView::onFrameReady);
+    // ---- B. 业务数据流 (Service -> UI) ----
+    connect(m_cameraService, &CameraService::frameReadyToShow,
+        m_mainWindow->getCameraView(), &CameraView::onFrameReady);
 
-    // 线程结束时自动清理
-    connect(m_cameraThread, &QThread::finished, m_cameraThread, &QObject::deleteLater);
+    // ---- C. 控制流 (UI -> Service) 【本次新增】 ----
+    // UI 参数调节 -> Service 参数下发 (Service 会通过多态指针调用底层硬件)
+    connect(m_mainWindow->getCameraView(), &CameraView::exposureTimeChanged,
+        m_cameraService, &CameraService::setExposureTime);
+
+    connect(m_mainWindow->getCameraView(), &CameraView::gainChanged,
+        m_cameraService, &CameraService::setGain);
 }
 
 void AppManager::start() {
@@ -65,13 +72,23 @@ void AppManager::start() {
 
     if (status == CameraStatus::SUCCESS) {
         qDebug() << "[AppManager] 相机打开成功，启动数据流线程！";
+
+        // 1. 捞取相机当前值
+        float currentExposure = m_camera->getExposureTime();
+        float currentGain = m_camera->getGain();
+
+        // 2. 【新增】：捞取相机的物理极限值
+        float maxGain = m_camera->getMaxGain();
+
+        // 3. 把这些真实的数据一股脑喂给 UI，让 UI 根据硬件能力变形！
+        m_mainWindow->getCameraView()->setInitialParams(currentExposure, currentGain, maxGain);
+
         m_cameraThread->start();
     }
     else {
         qDebug() << "[AppManager] 致命错误：相机打开失败！错误码：" << static_cast<int>(status);
-        // 直接在黑屏上打出提示语！
-        m_mainWindow->getCameraView()->showMessage("相机连接失败，请检查网线、电源或 IP 配置！");
+        m_mainWindow->getCameraView()->showMessage("相机连接失败，请检查网线、电源或 USB 配置！");
     }
 
-    m_mainWindow->show();
+    m_mainWindow->showMaximized();
 }

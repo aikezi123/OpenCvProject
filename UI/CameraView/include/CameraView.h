@@ -6,6 +6,8 @@
 #include <QVBoxLayout>
 #include <opencv2/opencv.hpp>
 #include <qpushbutton.h>
+#include <QFormLayout>   // 新增
+#include <QDoubleSpinBox>// 新增
 
 class CameraView : public QWidget {
     Q_OBJECT // 必备：启用信号槽机制
@@ -13,15 +15,24 @@ public:
     explicit CameraView(QWidget* parent = nullptr);
     ~CameraView() override;
     void showMessage(const QString& msg);
-    void initLayout();
-    void initSignalConnects();
+    // 用于接收相机硬件真实的初始参数
+    void setInitialParams(double exposure, double gain, double maxGain);
+
+
 
 public slots:
     // 专门用来接收 Service 层发来的图像
     void onFrameReady(const cv::Mat& frame);
 
+signals:
+    // 通知外部参数已修改
+    void exposureTimeChanged(double timeUs);
+    void gainChanged(double gain);
 
 private:
+    void initLayout();
+    void initSignalConnects();
+    void initSettingsPanel();   // 参数设置面板的初始化函数
     //保存图片的辅助函数
     void saveFrameToFile(const cv::Mat& frame, const QString& dirPath);
 
@@ -31,6 +42,12 @@ private:
     // UI 控制按钮
     QPushButton* m_btnLiveStream;
     QPushButton* m_btnSnapshot;
+    QPushButton* m_btnSettings;
+
+    // 右侧参数面板相关的控件
+    QWidget* m_settingsPanel;
+    QDoubleSpinBox* m_spinExposure;
+    QDoubleSpinBox* m_spinGain;
 
     // 核心状态阀门
     bool m_isLiveMode = true; // true: 实时刷新, false: 画面定格
