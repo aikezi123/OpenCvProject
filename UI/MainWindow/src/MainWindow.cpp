@@ -8,6 +8,7 @@
 #include "FirmWareUpgradeView.h"
 #include "SoftWareUpgrade.h"
 #include "FrontPageView.h"
+#include "OpenCvDemoView.h"
 
 MainWindow::~MainWindow() {
     delete ui;
@@ -89,6 +90,7 @@ void MainWindow::initPages() {
     QTreeWidgetItem* rootImageProcess = addCategoryNode("图像处理", defaultIcon);
     m_cameraView = new CameraView(this); // 先创建实例，后面 getCameraView() 可能会用到
     addBusinessPage(rootImageProcess, "相机", m_cameraView);
+    addBusinessPage(rootImageProcess, "OpenCV学习Demo", new OpenCvDemoView(this));
 
 
 
